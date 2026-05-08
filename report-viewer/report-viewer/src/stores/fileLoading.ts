@@ -12,7 +12,7 @@ export async function loadReport(): Promise<void> {
     reportFile = await getLocalFile('example.jplag')
     reportName = 'progpedia.jplag'
   } else if (getQueryFileUrl() !== null) {
-    const queryURL = new URL(getQueryFileUrl()!)
+    const queryURL = new URL(getQueryFileUrl()!, window.location.href)
     const response = await fetch(queryURL)
     reportFile = await response.blob()
 
