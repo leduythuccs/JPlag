@@ -55,9 +55,16 @@ async function useLocalReportFileMode() {
   /* eslint-enable @typescript-eslint/no-unused-vars */
 }
 
+const FILE_URL_STORAGE_KEY = 'jplag_file_url'
+
 function getQueryFileUrl() {
   const urlParameters = new URLSearchParams(document.location.search)
-  return urlParameters.get('file')
+  const url = urlParameters.get('file')
+  if (url) {
+    localStorage.setItem(FILE_URL_STORAGE_KEY, url)
+    return url
+  }
+  return localStorage.getItem(FILE_URL_STORAGE_KEY)
 }
 
 /**
