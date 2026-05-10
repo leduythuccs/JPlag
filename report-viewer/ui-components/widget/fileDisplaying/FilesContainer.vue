@@ -13,17 +13,6 @@
           >{{ tokenCount }} total tokens</span
         >
       </div>
-      <ButtonComponent v-if="allCollapsed" class="space-x-2 print:hidden" @click="expandAll()"
-        ><FontAwesomeIcon :icon="faExpandAlt" />
-        <p>Expand All</p></ButtonComponent
-      >
-      <ButtonComponent
-        v-else
-        class="w-full space-x-2 md:max-w-fit print:hidden"
-        @click="collapseAll()"
-        ><FontAwesomeIcon :icon="faCompressAlt" />
-        <p>Collapse All</p></ButtonComponent
-      >
     </div>
 
     <ScrollableComponent ref="scrollContainer" class="grow">
@@ -54,11 +43,9 @@ import {
   MetricJsonIdentifier
 } from '@jplag/model'
 import CodePanel from './CodePanel.vue'
-import { ContainerComponent, ScrollableComponent, ButtonComponent } from '../../base'
+import { ContainerComponent, ScrollableComponent } from '../../base'
 import { VueDraggableNext } from 'vue-draggable-next'
 import { computed, nextTick, ref, type PropType, type Ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCompressAlt, faExpandAlt } from '@fortawesome/free-solid-svg-icons'
 import { FileSortingOptions } from './FileSortingOptions'
 import MetricIcon from '../MetricIcon.vue'
 
@@ -206,24 +193,6 @@ function scrollTo(file: string, line: number) {
     })
   }
 }
-
-/**
- * Collapses all the code panels.
- */
-function collapseAll() {
-  codePanels.value.forEach((panel) => panel.collapse())
-}
-
-/**
- * Expands all the code panels.
- */
-function expandAll() {
-  codePanels.value.forEach((panel) => panel.expand())
-}
-
-const allCollapsed = computed(() => {
-  return codePanels.value.every((panel) => panel.isCollapsed())
-})
 
 defineExpose({
   scrollTo,

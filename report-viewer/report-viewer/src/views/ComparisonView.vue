@@ -11,25 +11,15 @@
         {{ reportStore().getDisplayName(comparison.firstSubmissionId) }}
         -
         {{ reportStore().getDisplayName(comparison.secondSubmissionId) }}
-        <ToolTipComponent
-          direction="left"
-          class="float-right hidden md:block print:hidden"
-          :show-info-symbol="false"
-        >
-          <template #tooltip>
-            <p class="text-sm whitespace-pre">
-              Printing works best in landscape mode on Chromium based browsers
-            </p>
-          </template>
-          <template #default>
-            <ButtonComponent
-              class="hidden h-10 w-10 items-center justify-center md:flex"
-              @click="print()"
-            >
-              <FontAwesomeIcon class="text-2xl" :icon="faPrint" />
-            </ButtonComponent>
-          </template>
-        </ToolTipComponent>
+        <span class="float-right hidden gap-2 md:flex print:hidden">
+          <ButtonComponent
+            class="flex h-10 items-center justify-center gap-2 px-3"
+            @click="router.push({ name: 'OverviewView' })"
+          >
+            <FontAwesomeIcon :icon="faArrowLeft" />
+            Back
+          </ButtonComponent>
+        </span>
       </h2>
       <div class="flex flex-col gap-x-10 gap-y-2 md:flex-row">
         <span class="flex items-center gap-x-1">
@@ -85,14 +75,6 @@
         :basecode-in-second="secondBaseCodeMatches"
         @match-selected="showMatch"
       />
-      <OptionsSelectorComponent
-        ref="sortingOptionSelector"
-        class="mt-2 print:hidden"
-        title="File Sorting:"
-        :labels="sortingOptions.map((o) => fileSortingTooltips[o])"
-        :default-selected="sortingOptions.indexOf(uiStore().fileSorting)"
-        @selection-changed="(index: number) => changeFileSorting(index)"
-      />
     </ContainerComponent>
     <div ref="styleholder" class="col-span-0 row-span-0"></div>
     <FilesContainer
@@ -104,7 +86,6 @@
       :base-code-matches="firstBaseCodeMatches"
       class="col-start-1 row-start-2 flex flex-col overflow-hidden"
       @match-selected="showMatchInSecond"
-      @files-moved="filesMoved()"
     />
     <FilesContainer
       ref="panel2"
@@ -115,33 +96,19 @@
       :base-code-matches="secondBaseCodeMatches"
       class="col-start-1 row-start-3 flex overflow-hidden md:col-start-2 md:row-start-2"
       @match-selected="showMatchInFirst"
-      @files-moved="filesMoved()"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPrint } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { onMounted, ref, watch, type Ref, computed, onErrorCaptured } from 'vue'
 import hljsLightMode from 'highlight.js/styles/vs.css?raw'
 import hljsDarkMode from 'highlight.js/styles/vs2015.css?raw'
-import { redirectOnError } from '@/router'
-import {
-  ContainerComponent,
-  ButtonComponent,
-  TextInformation,
-  ToolTipComponent
-} from '@jplag/ui-components/base'
-import {
-  MatchList,
-  FilesContainer,
-  OptionsSelectorComponent,
-  MetricIcon,
-  FileSortingOptions,
-  fileSortingTooltips,
-  MetricTypes
-} from '@jplag/ui-components/widget'
+import { redirectOnError, router } from '@/router'
+import { ContainerComponent, ButtonComponent, TextInformation } from '@jplag/ui-components/base'
+import { MatchList, FilesContainer, MetricIcon, MetricTypes } from '@jplag/ui-components/widget'
 import { reportStore } from '@/stores/reportStore'
 import { Match, MetricJsonIdentifier } from '@jplag/model'
 import { uiStore } from '@/stores/uiStore'
@@ -193,36 +160,6 @@ function showMatchInSecond(match: Match) {
 function showMatch(match: Match) {
   showMatchInFirst(match)
   showMatchInSecond(match)
-}
-
-const sortingOptions = [
-  FileSortingOptions.ALPHABETICAL,
-  FileSortingOptions.MATCH_COVERAGE,
-  FileSortingOptions.MATCH_COUNT,
-  FileSortingOptions.MATCH_SIZE
-]
-const movedAfterSorting = ref(false)
-const sortingOptionSelector: Ref<typeof OptionsSelectorComponent | null> = ref(null)
-
-function changeFileSorting(index: number) {
-  movedAfterSorting.value = false
-  if (index < 0) {
-    return
-  }
-  uiStore().fileSorting = sortingOptions[index]
-  panel1.value?.sortFiles(uiStore().fileSorting)
-  panel2.value?.sortFiles(uiStore().fileSorting)
-}
-
-function filesMoved() {
-  movedAfterSorting.value = true
-  if (sortingOptionSelector.value) {
-    sortingOptionSelector.value.select(-2)
-  }
-}
-
-function print() {
-  window.print()
 }
 
 // This code is responsible for changing the theme of the highlighted code depending on light/dark mode
