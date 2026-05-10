@@ -48,6 +48,8 @@ Both the MOSS TCP server (`:7690`) and the HTTP viewer server (`:8080`) start in
 | `--viewer-dir` | `../report-viewer/report-viewer/dist` | Path to the built report viewer `dist/` |
 | `--work-dir` | `/tmp/jplag-moss-sessions` | Directory for session files and results |
 | `--java` | `java` | Java executable |
+| `--public-port` | *(same as `--http-port`)* | Port in returned URLs — set to `80`/`443` when behind nginx |
+| `--public-scheme` | `http` | Scheme in returned URLs: `http` or `https` |
 | `--allowed-users` | *(all allowed)* | Comma-separated whitelist of MOSS user IDs |
 | `--log-level` | `INFO` | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 
@@ -82,6 +84,24 @@ python server.py \
 | `javascript` | `javascript` |
 | `scheme` | `scheme` |
 | *(all others)* | `text` |
+
+## Deploying with nginx
+
+The Python process runs internally; nginx handles the public HTTP port.
+The MOSS TCP port (`7690`) is raw TCP and is exposed directly — nginx is not needed for it.
+
+```bash
+python server.py \
+  --bind 127.0.0.1 \       # HTTP server: internal only
+  --http-port 8080 \        # Python binds here
+  --public-port 80 \        # port used in returned URLs (matches nginx)
+  --public-host your-domain.com \
+  --moss-port 7690 \        # MOSS TCP: keep exposed directly
+  --allowed-users 123456
+```
+
+> `--public-port` sets the port embedded in result URLs without affecting what port Python listens on.
+> Without it, the URL would contain `:8080` which wouldn't be reachable through nginx.
 
 ## Using with the MOSS Client
 

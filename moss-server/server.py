@@ -42,6 +42,8 @@ class Config:
     public_host: str = 'localhost'
     moss_port: int = 7690
     http_port: int = 8080
+    public_port: int = None  # port in returned URLs; defaults to http_port when None
+    public_scheme: str = 'http'  # 'http' or 'https'
     jplag_jar: str = '../cli/target/jplag-6.3.0-jar-with-dependencies.jar'
     viewer_dir: str = '../report-viewer/report-viewer/dist'
     work_dir: str = '/tmp/jplag-moss-sessions'
@@ -56,6 +58,12 @@ def parse_args() -> Config:
     p.add_argument('--public-host', default=default_config.public_host, dest='public_host')
     p.add_argument('--moss-port', type=int, default=default_config.moss_port, dest='moss_port')
     p.add_argument('--http-port', type=int, default=default_config.http_port, dest='http_port')
+    p.add_argument('--public-port', type=int, default=None, dest='public_port',
+                   help='Port used in returned URLs (default: same as --http-port). '
+                        'Set to 80 or 443 when behind a reverse proxy.')
+    p.add_argument('--public-scheme', default='http', dest='public_scheme',
+                   choices=['http', 'https'],
+                   help='URL scheme used in returned result URLs (default: http).')
     p.add_argument('--jplag-jar', default=default_config.jplag_jar, dest='jplag_jar')
     p.add_argument('--viewer-dir', default=default_config.viewer_dir, dest='viewer_dir')
     p.add_argument('--work-dir', default=default_config.work_dir, dest='work_dir')
@@ -75,6 +83,8 @@ def parse_args() -> Config:
         public_host=args.public_host,
         moss_port=args.moss_port,
         http_port=args.http_port,
+        public_port=args.public_port,
+        public_scheme=args.public_scheme,
         jplag_jar=args.jplag_jar,
         viewer_dir=args.viewer_dir,
         work_dir=args.work_dir,
@@ -395,7 +405,11 @@ class MossSession:
         log.info('Result published: %s', dest)
 
         host = self._resolve_public_host()
-        return f'http://{host}:{self._config.http_port}/?file=/results/{session_id}.jplag'
+        scheme = self._config.public_scheme
+        port = self._config.public_port or self._config.http_port
+        default_port = 443 if scheme == 'https' else 80
+        authority = host if port == default_port else f'{host}:{port}'
+        return f'{scheme}://{authority}/?file=/results/{session_id}.jplag'
 
     def _resolve_public_host(self) -> str:
         host = self._config.public_host
